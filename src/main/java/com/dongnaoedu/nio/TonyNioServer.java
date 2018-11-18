@@ -17,6 +17,7 @@ public class TonyNioServer {
 
 	public static Selector selector;
 
+	/*有数据交互的才建立线程*/
 	public static final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 10, TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>());
 
@@ -26,14 +27,24 @@ public class TonyNioServer {
 
 	public static void main(String[] args) throws Exception {
 
+		/*NIO的三个核心
+		 * Channel,通道
+		 * Buffer,缓冲区
+		 * Selector,选择器,对操作系统
+		 * */
+		
+		
 		// serversocket
 		serverSocketChannel = ServerSocketChannel.open();
-		serverSocketChannel.configureBlocking(false);
+		
+		/*设置非阻塞的模式，就是NIO*/
+		serverSocketChannel.configureBlocking(false);//
 		// 开启并监听端口
 		serverSocketChannel.bind(new InetSocketAddress(port));
 		System.out.println("NIO启动:" + port);
+		
 		// 选择器，根据指定的条件，选择需要的东西
-		// 获取一个选择器
+		// 获取一个选择器,因为所有的连接在操作系统段都有记录
 		TonyNioServer.selector = Selector.open();
 
 		// 在这个socket服务端通道上面，添加刚刚获取的选择器
@@ -59,8 +70,10 @@ public class TonyNioServer {
 					// 处理连接
 					// 在服务端通道中，取出新的socket连接
 					SocketChannel chan = serverSocketChannel.accept();
+					
 					// 设置为非阻塞模式
 					chan.configureBlocking(false);
+					
 					// 在新的socket连接上，增加一个查询器（复用上面已有的查询器）
 					// 并且，查询条件是：OP_READ 有数据传输
 					chan.register(TonyNioServer.selector, SelectionKey.OP_READ);
